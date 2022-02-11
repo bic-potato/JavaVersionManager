@@ -1,0 +1,10 @@
+[[Java_Version]]
+full_version = "jdk-11.0.14.1+1"
+jvm_variant = "Hotspot"
+image_type = "jdk"
+path = "C:\\Users\\m1333\\Documents\\Programming\\java-version\\target\\debug\\java/jdk-11.0.14.1+1"
+[[Java_Version]]
+full_version = "jdk-16.0.2+7"
+jvm_variant = "Hotspot"
+image_type = "jdk"
+path = "C:\\Users\\m1333\\Documents\\Programming\\java-version\\target\\debug\\java/jdk-16.0.2+7"
