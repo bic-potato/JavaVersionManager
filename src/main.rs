@@ -31,7 +31,6 @@ async fn main() {
                     clap::Arg::new("version")
                         .takes_value(true)
                         .value_name("Version")
-                        .short('v'),
                 ),
             ),
         )
@@ -40,7 +39,7 @@ async fn main() {
     if let Some(f) = matches.subcommand_matches("list") {
         if let Some(_) = f.subcommand_matches("remote") {
             let result = java_remote::list_remote().await;
-            println!("{}", result["releases"].pretty(4));
+            println!("{}", result.pretty(4));
         } else if let Some(_) = f.subcommand_matches("local") {
             let version_list = java_ver::read_version();
             println!("All available JDKs:");

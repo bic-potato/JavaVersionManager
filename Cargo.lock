@@ -572,22 +572,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aab8fc367588b89dcee83ab0fd66b72b50b72fa1904d7095045ace2b0c81c35"
 
 [[package]]
-name = "java-version"
-version = "0.1.0"
-dependencies = [
- "clap",
- "dotenv",
- "download_rs",
- "http",
- "json",
- "reqwest 0.11.9",
- "serde",
- "tokio 1.16.1",
- "toml",
- "zip",
-]
-
-[[package]]
 name = "js-sys"
 version = "0.3.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -601,6 +585,22 @@ name = "json"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "078e285eafdfb6c4b434e0d31e8cfcb5115b651496faca5749b88fafd4f23bfd"
+
+[[package]]
+name = "jvman"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dotenv",
+ "download_rs",
+ "http",
+ "json",
+ "reqwest 0.11.9",
+ "serde",
+ "tokio 1.16.1",
+ "toml",
+ "zip",
+]
 
 [[package]]
 name = "kernel32-sys"

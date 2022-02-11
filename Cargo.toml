@@ -16,3 +16,4 @@ tokio = {version = "1", features = ["full"]}
 toml = "0.5"
 zip = "0.5.13"
 dotenv = "0.15.0"
+# windows-sys = {version = "0.32.0", features = ["Win32_Foundation","Win32_Security", "Win32_System_Threading", "Win32_System_SystemServices"]}

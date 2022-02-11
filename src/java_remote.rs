@@ -69,6 +69,8 @@ pub async fn get_remote(version: &str) {
                     }
                     Err(e) => println!("下载出错：{}", e.to_string()),
                 };
+            } else {
+                println!("JDK already exist!");
             }
         }
         i += 1;

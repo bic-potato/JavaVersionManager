@@ -6,6 +6,13 @@ use std::path;
 use std::path::Path;
 use std::path::PathBuf;
 use toml;
+// use windows_sys::Win32::Foundation;
+// use windows_sys::Win32::Foundation::HANDLE;
+// use windows_sys::Win32::Foundation::LUID;
+// use windows_sys::Win32::Security;
+// use windows_sys::Win32::Security::TOKEN_ADJUST_PRIVILEGES;
+// use windows_sys::Win32::System::SystemServices::SE_CREATE_SYMBOLIC_LINK_NAME;
+// use windows_sys::Win32::System::Threading;
 
 #[derive(Serialize, Deserialize)]
 pub struct Java {
@@ -67,23 +74,57 @@ pub fn version_record(file: &Path, java_config: Java) {
     file.write(config.as_bytes()).expect("Err");
 }
 
-pub fn enable_version(version: &str){
+pub fn enable_version(version: &str) {
     let contents = std::fs::read_to_string("./versions.toml").expect("Unable to load");
     let store: Store = toml::from_str(&contents).unwrap();
     if let Some(list) = store.Java_Version {
         for element in list {
-            if version == element.full_version
-            {
+            if version == element.full_version {
                 let mut path = PathBuf::new();
                 path.push(&element.path);
                 //path.push("bin/");
                 let mut current_location = std::env::current_exe().unwrap();
                 current_location.pop();
                 current_location.push("OpenJDK/");
+                // unsafe {
+                //     let hToken: HANDLE;
+                //     let mut token = &mut hToken;
+                //     let mut retn = Threading::OpenProcessToken(
+                //         Threading::GetCurrentProcess(),
+                //         TOKEN_ADJUST_PRIVILEGES,
+                //         token,
+                //     );
+                //     let mut luid: LUID;
+                //     let mut luid_pointer = &mut luid;
+                //     let _ = Security::LookupPrivilegeValueA(
+                //         None,
+                //         &SE_CREATE_SYMBOLIC_LINK_NAME,
+                //         luid_pointer,
+                //     );
+                //     let mut structs = Security::LUID_AND_ATTRIBUTES {
+                //         Luid: luid,
+                //         Attributes: Security::SE_PRIVILEGE_ENABLED,
+                //     };
+
+                //     let token = Security::TOKEN_PRIVILEGES {
+                //         PrivilegeCount: 1,
+                //         Privileges: [structs],
+                //     };
+                //     let secure = Security::AdjustTokenPrivileges(
+                //         Threading::GetCurrentProcess(),
+                //         0,
+                //         &mut token,
+                //         0,
+                //         None,
+                //         None
+                //     );
+                // }
+                let result = std::fs::remove_dir_all(&current_location);
+
                 let result = std::os::windows::fs::symlink_dir(&path, &current_location);
                 match result {
                     Ok(_) => println!("Enable SUCCESS, JDK VERSION:{}", version),
-                    Err(e) => println!("Enable FAILED, {}", e.to_string())
+                    Err(e) => println!("Enable FAILED, {}", e.to_string()),
                 }
             }
         }
