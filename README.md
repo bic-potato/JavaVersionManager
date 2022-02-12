@@ -28,12 +28,13 @@ jdk-16.0.2+7
 */
 jvman enable jdk-11.0.14.1+1 // 启用版本为 jdk-11.0.14.1+1 的 JDK
 ```
+
 **请注意**，由于当前版本尚未实现 UAC 提权，所以 `jvman enable` 命令会出现 `Enable FAILED, 客户端没有所需的特权。 (os error 1314)` 的错误报告，推荐搭配 [gsudo](https://github.com/gerardog/gsudo) 使用，安装后使用方法为 `sudo jvman enable {version}`.
 
 ## 自行构建
 
 ``` cmd
-cargo build --version
+cargo build --release
 ```
 
-将编译好的 `jvman.exe` 文件拖拽到单独的文件夹，新建 `versions.toml` 文件, `temp` 和 `java` 文件， 向 Path 中添加 jvman.exe 的文件路径和`{jvman.exe所在文件夹路径}/OpenJDK/bin` 两个项目，即可正常使用。
+将编译好的 `jvman.exe` 文件拖拽到单独的文件夹，新建 `versions.toml` 文件, `temp` 和 `java` 文件夹， 向 Path 中添加 jvman.exe 的文件路径和`{jvman.exe所在文件夹路径}/OpenJDK/bin` 两个项目，即可正常使用。
