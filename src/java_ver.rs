@@ -1,4 +1,5 @@
 use crate::utils::ziputil;
+use console::Style;
 use serde::Deserialize;
 use serde::Serialize;
 use std::io::Write;
@@ -44,7 +45,10 @@ struct Store {
 }
 
 pub fn read_version() -> Vec<String> {
-    let contents = std::fs::read_to_string("./versions.toml").expect("Unable to load");
+    let mut current_location = std::env::current_exe().unwrap();
+    current_location.pop();
+    current_location.push("versions.toml");
+    let contents = std::fs::read_to_string(&current_location).expect("Unable to load Version Files");
     let store: Store = toml::from_str(&contents).unwrap();
     let mut versions: Vec<String> = Vec::new();
     if let Some(list) = store.Java_Version {
@@ -61,9 +65,12 @@ pub fn version_record(file: &Path, java_config: Java) {
     current_location.pop();
     current_location.push("java/");
     ziputil::extract(&file, &current_location);
+    let mut version_file = std::env::current_exe().unwrap();
+    version_file.pop();
+    version_file.push("versions.toml");
     let mut file = std::fs::File::options()
         .append(true)
-        .open("./versions.toml")
+        .open(&version_file)
         .unwrap();
     let mut list: Vec<Java> = Vec::new();
     list.push(java_config);
@@ -123,8 +130,14 @@ pub fn enable_version(version: &str) {
 
                 let result = std::os::windows::fs::symlink_dir(&path, &current_location);
                 match result {
-                    Ok(_) => println!("Enable SUCCESS, JDK VERSION:{}", version),
-                    Err(e) => println!("Enable FAILED, {}", e.to_string()),
+                    Ok(_) => {
+                        let green = Style::new().green();
+                        println!("{}, JDK VERSION:{}",green.apply_to("Enable SUCCESS"), version)
+                    }
+                    Err(e) =>{
+                        let red = Style::new().red();
+                         println!("{}, {}", red.apply_to("Enable FAILED") ,e.to_string());
+                    }
                 }
             }
         }

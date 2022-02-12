@@ -10,7 +10,7 @@ async fn main() {
     let matches = clap::App::new("java-version")
         .about("Manage Java Developer Kit Versions")
         .author("ZuoXichen")
-        .version("0.1.0")
+        .version("0.1.1")
         .subcommand(
             clap::App::new("list")
                 .about("List local available JDKs")
