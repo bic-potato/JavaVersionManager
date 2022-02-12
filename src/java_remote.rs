@@ -43,8 +43,8 @@ pub async fn get_remote(version: &str) {
             if !version_list.contains(&version_name) {
                 // println!("{}", file_name);
                 let download_url = format!(
-                    "https://mirrors.tuna.tsinghua.edu.cn/AdoptOpenJDK/{}/jdk/x64/windows/{}",
-                    version, file_name
+                    "https://mirrors.tuna.tsinghua.edu.cn/AdoptOpenJDK/{}/jdk/{}/windows/{}",
+                    version, arch, file_name
                 );
 
                 // println!("{}", download_url);

@@ -82,7 +82,10 @@ pub fn version_record(file: &Path, java_config: Java) {
 }
 
 pub fn enable_version(version: &str) {
-    let contents = std::fs::read_to_string("./versions.toml").expect("Unable to load");
+    let mut current_location = std::env::current_exe().unwrap();
+    current_location.pop();
+    current_location.push("versions.toml");
+    let contents = std::fs::read_to_string(&current_location).expect("Unable to load Version Files");
     let store: Store = toml::from_str(&contents).unwrap();
     if let Some(list) = store.Java_Version {
         for element in list {
