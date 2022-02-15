@@ -3,6 +3,7 @@ use download_rs::async_download::Download;
 use json;
 use reqwest;
 use console::Style;
+use crate::utils::ziputil;
 
 pub async fn list_remote() -> json::JsonValue {
     let url = String::from("https://api.adoptium.net/v3/info/available_releases?image_type=jdk&os=windows&page=0&release_type=ga&sort_order=ASC");
@@ -39,8 +40,9 @@ pub async fn get_remote(version: &str) {
         {
             let file_name = result[i]["binary"]["package"]["name"].to_string();
             let version_name = result[i]["release_name"].to_string();
-            let version_list = java_ver::read_version();
-            if !version_list.contains(&version_name) {
+            let mut version_store = java_ver::read_version();
+
+            if !version_store.contains(&version_name, "Eclipse Adoptium") {
                 // println!("{}", file_name);
                 let download_url = format!(
                     "https://mirrors.tuna.tsinghua.edu.cn/AdoptOpenJDK/{}/jdk/{}/windows/{}",
@@ -61,14 +63,19 @@ pub async fn get_remote(version: &str) {
                         java_location.pop();
                         java_location.push("java/");
                         java_location.push(&version_name);
-                        let java: java_ver::Java = java_ver::Java::new(
-                            version_name,
-                            String::from("Hotspot"),
-                            String::from("jdk"),
-                            String::from(java_location.to_str().unwrap()),
+                        let java: java_ver::JavaNew = java_ver::JavaNew::new(
+                            "Eclipse Adoptium",
+                            &version_name,
+                            "Hotspot",
+                            "jdk",
+                            java_location.to_str().unwrap(),
                         );
+                        let mut current_location = std::env::current_exe().unwrap();
+                        current_location.pop();
+                        current_location.push("java/");
                         let file = String::from(save_location) + &file_name;
-                        java_ver::version_record(std::path::Path::new(&file), java);
+                        ziputil::extract(std::path::Path::new(&file), &current_location);
+                        java_ver::version_record(java);
                         match std::fs::remove_file(std::path::Path::new(&file)) {
                             Ok(_) => println!("{}", green.apply_to("jdk install finish!")),
                             Err(e) => println!("{} temp file delete failed, {}", red.apply_to("Error"), e.to_string())

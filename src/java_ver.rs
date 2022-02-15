@@ -1,19 +1,16 @@
-use crate::utils::ziputil;
+use std::error::Error;
+use std::fs::File;
+use crate::utils::{uac_utils, ziputil};
 use console::Style;
 use serde::Deserialize;
 use serde::Serialize;
 use std::io::Write;
-use std::path;
+use std::{fs, path, result};
 use std::path::Path;
 use std::path::PathBuf;
 use toml;
-// use windows_sys::Win32::Foundation;
-// use windows_sys::Win32::Foundation::HANDLE;
-// use windows_sys::Win32::Foundation::LUID;
-// use windows_sys::Win32::Security;
-// use windows_sys::Win32::Security::TOKEN_ADJUST_PRIVILEGES;
-// use windows_sys::Win32::System::SystemServices::SE_CREATE_SYMBOLIC_LINK_NAME;
-// use windows_sys::Win32::System::Threading;
+use crate::utils::release_utils::ReleaseParser;
+
 
 #[derive(Serialize, Deserialize)]
 pub struct Java {
@@ -23,6 +20,7 @@ pub struct Java {
     path: String,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct JavaNew {
     implementor: String,
     full_version: String,
@@ -32,13 +30,26 @@ pub struct JavaNew {
 }
 
 impl JavaNew {
-    pub fn new (    implementor: String,
-                   full_version: String,
-                   jvm_variant: String,
-                   image_type: String,
-                   path: String)-> JavaNew
+    pub fn new(implementor: &str,
+               full_version: &str,
+               jvm_variant: &str,
+               image_type: &str,
+               path: &str) -> JavaNew
     {
-        return JavaNew{implementor, full_version, jvm_variant, image_type, path};
+        let implementor = implementor.to_string();
+        let full_version = full_version.to_string();
+        let jvm_variant = jvm_variant.to_string();
+        let image_type = image_type.to_string();
+        let path = path.to_string();
+        return JavaNew { implementor, full_version, jvm_variant, image_type, path };
+    }
+    pub fn get_implementor(&mut self) -> String {
+        let out = self.implementor.to_owned();
+        return out;
+    }
+    pub fn get_full_version(&mut self) -> String {
+        let out = self.full_version.to_owned();
+        return out;
     }
 }
 
@@ -59,56 +70,98 @@ impl Java {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Store {
+pub struct Store {
     Java_Version: Option<Vec<Java>>,
 }
 
-pub fn read_version() -> Vec<String> {
+#[derive(Serialize, Deserialize)]
+pub struct StoreNew {
+    java_version: Option<Vec<JavaNew>>,
+}
+
+impl StoreNew {
+    pub fn new() -> StoreNew {
+        let mut vec: Vec<JavaNew> = Vec::new();
+        return StoreNew { java_version: Some(vec) };
+    }
+    pub fn add(&mut self, obj: JavaNew) {
+        let mut list = self.java_version.as_mut().unwrap();
+        list.push(obj);
+    }
+    pub fn get_java_versions(&mut self) -> &mut Vec<JavaNew> {
+        let mut list = self.java_version.as_mut().unwrap();
+        return list;
+    }
+
+    pub fn get_full_version_list(&mut self) -> Vec<String> {
+        let mut list = self.java_version.as_mut().unwrap();
+        let mut version_list: Vec<String> = Vec::new();
+        for element in list {
+            version_list.push(element.full_version.to_string());
+        }
+        version_list
+    }
+
+
+    pub fn contains(&mut self, version: &str, implementor: &str) -> bool {
+        let list = self.java_version.as_ref().unwrap();
+
+        for element in list {
+            if element.full_version == String::from(version) && element.implementor == String::from(implementor) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+pub fn old_to_new(store: Store) -> StoreNew {
+    let mut new = StoreNew::new();
+    if let Some(list) = store.Java_Version {
+        for element in list {
+            let java_new = JavaNew::new("Eclipse Adoptium", &element.full_version, &element.jvm_variant, &element.image_type, &element.path);
+            new.add(java_new);
+        }
+    } else {
+        panic!("Error on converting record file!");
+    }
+    return new;
+}
+
+
+pub fn read_version() -> StoreNew {
     let mut current_location = std::env::current_exe().unwrap();
     current_location.pop();
     current_location.push("versions.toml");
     let contents = std::fs::read_to_string(&current_location).expect("Unable to load Version Files");
-    let store: Store = toml::from_str(&contents).unwrap();
-    let mut versions: Vec<String> = Vec::new();
-    if let Some(list) = store.Java_Version {
-        for element in list {
-            let version = element.full_version;
-            versions.push(version)
-        }
+    let mut result: Store = toml::from_str(&contents).unwrap();
+    if let Some(store) = result.Java_Version {
+        let javaverisions = old_to_new( toml::from_str(&contents).unwrap());
+        let content_string = toml::to_string(&javaverisions).unwrap();
+        fs::write(&current_location, content_string).unwrap();
+        return javaverisions;
+    } else {
+        let result: StoreNew = toml::from_str(&contents).unwrap();
+        return result;
     }
-    return versions;
 }
 
-pub fn version_record(file: &Path, java_config: Java) {
-    let mut current_location = std::env::current_exe().unwrap();
-    current_location.pop();
-    current_location.push("java/");
-    ziputil::extract(&file, &current_location);
+
+pub fn version_record(java_config: JavaNew) {
     let mut version_file = std::env::current_exe().unwrap();
     version_file.pop();
     version_file.push("versions.toml");
-    let mut file = std::fs::File::options()
-        .append(true)
-        .open(&version_file)
-        .unwrap();
-    let mut list: Vec<Java> = Vec::new();
-    list.push(java_config);
-    let conf: Store = Store {
-        Java_Version: Some(list),
-    };
+    let mut conf = read_version();
+    conf.add(java_config);
     let config = toml::to_string(&conf).unwrap();
-    file.write(config.as_bytes()).expect("Err");
+    fs::write(&version_file, config.as_bytes()).expect("Err");
 }
 
-pub fn enable_version(version: &str) {
-    let mut current_location = std::env::current_exe().unwrap();
-    current_location.pop();
-    current_location.push("versions.toml");
-    let contents = std::fs::read_to_string(&current_location).expect("Unable to load Version Files");
-    let store: Store = toml::from_str(&contents).unwrap();
-    if let Some(list) = store.Java_Version {
-        for element in list {
-            if version == element.full_version {
+pub fn enable_version(implementor: &str, version: &str) {
+    let store: StoreNew = read_version();
+    if let Some(lists) = store.java_version {
+        for element in lists {
+            if version == element.full_version && implementor == element.implementor {
                 let mut path = PathBuf::new();
                 path.push(&element.path);
                 //path.push("bin/");
@@ -116,52 +169,39 @@ pub fn enable_version(version: &str) {
                 current_location.pop();
                 current_location.push("OpenJDK/");
                 // unsafe {
-                //     let hToken: HANDLE;
-                //     let mut token = &mut hToken;
-                //     let mut retn = Threading::OpenProcessToken(
-                //         Threading::GetCurrentProcess(),
-                //         TOKEN_ADJUST_PRIVILEGES,
-                //         token,
-                //     );
-                //     let mut luid: LUID;
-                //     let mut luid_pointer = &mut luid;
-                //     let _ = Security::LookupPrivilegeValueA(
-                //         None,
-                //         &SE_CREATE_SYMBOLIC_LINK_NAME,
-                //         luid_pointer,
-                //     );
-                //     let mut structs = Security::LUID_AND_ATTRIBUTES {
-                //         Luid: luid,
-                //         Attributes: Security::SE_PRIVILEGE_ENABLED,
-                //     };
-
-                //     let token = Security::TOKEN_PRIVILEGES {
-                //         PrivilegeCount: 1,
-                //         Privileges: [structs],
-                //     };
-                //     let secure = Security::AdjustTokenPrivileges(
-                //         Threading::GetCurrentProcess(),
-                //         0,
-                //         &mut token,
-                //         0,
-                //         None,
-                //         None
-                //     );
+                //     uac_utils::get_privilage();
                 // }
-                let result = std::fs::remove_dir_all(&current_location);
+                let _ = std::fs::remove_dir_all(&current_location);
 
                 let result = std::os::windows::fs::symlink_dir(&path, &current_location);
                 match result {
                     Ok(_) => {
                         let green = Style::new().green();
-                        println!("{}, JDK VERSION:{}",green.apply_to("Enable SUCCESS"), version)
+                        println!("{}, JDK VERSION:{}", green.apply_to("Enable SUCCESS"), version)
                     }
-                    Err(e) =>{
+                    Err(e) => {
                         let red = Style::new().red();
-                         println!("{}, {}", red.apply_to("Enable FAILED") ,e.to_string());
+                        println!("{}, {}", red.apply_to("Enable FAILED"), e.to_string());
                     }
                 }
             }
         }
     }
 }
+
+
+pub fn read_local(path: &str) {
+    let mut record = read_version();
+    let mut release_parser = ReleaseParser::new(path);
+    let java = release_parser.parse();
+
+    if !record.contains(&java.full_version, &java.implementor) {
+        version_record(java);
+        let green = Style::new().green();
+        println!("{}", green.apply_to("jdk install finish!"))
+    } else {
+        let red = Style::new().red();
+        println!("{}JDK already exist!", red.apply_to("Error"));
+    }
+}
+

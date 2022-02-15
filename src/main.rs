@@ -2,6 +2,7 @@ use clap;
 use tokio;
 use console::Style;
 use dotenv::dotenv;
+use crate::java_ver::read_local;
 
 pub mod java_remote;
 pub mod java_ver;
@@ -13,7 +14,7 @@ async fn main() {
     let matches = clap::App::new("java-version")
         .about("Manage Java Developer Kit Versions")
         .author("ZuoXichen")
-        .version("0.1.2")
+        .version("0.2.0")
         .subcommand(
             clap::App::new("list")
                 .about("List local available JDKs")
@@ -26,7 +27,7 @@ async fn main() {
         .subcommand(
             clap::App::new("enable")
                 .about("enable one jdk version globally")
-                .arg(clap::Arg::new("version").takes_value(true)),
+                .args(&[clap::Arg::new("implementor").takes_value(true).short('i'), clap::Arg::new("version").takes_value(true).short('v')]),
         )
         .subcommand(
             clap::App::new("disable")
@@ -39,9 +40,13 @@ async fn main() {
                     clap::Arg::new("version")
                         .takes_value(true)
                         .value_name("Version"),
-                ),
-            ),
-        )
+                )).subcommand(
+                    clap::App::new("local").arg(
+                        clap::Arg::new("path")
+                            .takes_value(true)
+                            .value_name("Path"),
+                    ),
+                ))
         .get_matches();
 
     if let Some(f) = matches.subcommand_matches("list") {
@@ -49,10 +54,11 @@ async fn main() {
             let result = java_remote::list_remote().await;
             println!("{}", result.pretty(4));
         } else if let Some(_) = f.subcommand_matches("local") {
-            let version_list = java_ver::read_version();
+            let mut version_list = java_ver::read_version();
             println!("All available JDKs:");
-            for element in version_list {
-                println!("{}", element);
+            let mut element = version_list.get_java_versions();
+            for mut elem in element {
+                println!("\t\"{}\" {}", elem.get_implementor(), elem.get_full_version())
             }
         }
     } else if let Some(g) = matches.subcommand_matches("get") {
@@ -62,10 +68,20 @@ async fn main() {
                 let _: i32 = version.trim().parse().expect("Please enter a number");
                 java_remote::get_remote(v).await;
             }
+        } else if let Some(local) = g.subcommand_matches("local") {
+            if let Some(pos) = local.value_of("path") {
+                let postion = String::from(pos);
+                let postions = postion.replace("\"", "");
+                read_local(&postions);
+            }
         }
     } else if let Some(e) = matches.subcommand_matches("enable") {
-        if let Some(version) = matches.value_of("version") {
-            java_ver::enable_version(version);
+        if let Some(implementor) = e.value_of("implementor") {
+            if let Some(version) = e.value_of("version") {
+                let implementors = String::from(implementor);
+                let imple = implementors.replace("\"", "");
+                java_ver::enable_version(&imple, version);
+            }
         }
     } else if let Some(_) = matches.subcommand_matches("disable") {
         let mut current_location = std::env::current_exe().unwrap();
