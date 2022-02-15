@@ -14,22 +14,33 @@ jvman list remote // 获取可用的主版本号
 jvman get remote 11 // 下载 JDK 11 的最新构建版
 ```
 
+### 加载本地jdk环境
+
+`get local {Path}` 可以从路径中获取已安装的JDK的版本信息. 例如:
+
+```cmd
+"C:/Program Files/Eclipse Foundation/jdk-16.0.2.7-hotspot"
+
+//启用位于该位置的JDK
+```
+
 ### 本地已安装的 JDK 版本的查看和使用
 
-`list local` 命令可以查看当前已安装版本的版本列表， 使用`enable {version}` 命令可以全局启用特定版本的JDK。例如：
+`list local` 命令可以查看当前已安装版本的版本列表， 使用`enable -i {implementor} -v {version}` 命令可以全局启用特定版本的JDK。例如：
 
 ```cmd
 jvman list local // 列出本机的所有已下载的JDK
 /*
 将会呈现的输出类似于如下形式：
 All available JDKs:
-jdk-11.0.14.1+1
-jdk-16.0.2+7
+        "Eclipse Adoptium" jdk-11.0.14.1+1
+        "Eclipse Foundation" 16.0.2+7
+        "Eclipse Adoptium" jdk8u322-b06
 */
-jvman enable jdk-11.0.14.1+1 // 启用版本为 jdk-11.0.14.1+1 的 JDK
+jvman enable -i "Eclipse Adoptium" -v jdk-11.0.14.1+1 // 启用版本为 jdk-11.0.14.1+1 的 JDK
 ```
 
-**请注意**，由于当前版本尚未实现 UAC 提权，所以 `jvman enable` 命令会出现 `Enable FAILED, 客户端没有所需的特权。 (os error 1314)` 的错误报告，推荐搭配 [gsudo](https://github.com/gerardog/gsudo) 使用，安装后使用方法为 `sudo jvman enable {version}`.
+**请注意**，由于当前版本尚未实现 UAC 提权~~（很可能以后也不会实现）~~，所以 `jvman enable` 命令会出现 `Enable FAILED, 客户端没有所需的特权。 (os error 1314)` 的错误报告，推荐搭配 [gsudo](https://github.com/gerardog/gsudo) 使用，安装后使用方法为 `sudo jvman enable {version}`.
 
 ## 自行构建
 
