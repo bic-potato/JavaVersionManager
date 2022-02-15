@@ -23,6 +23,25 @@ pub struct Java {
     path: String,
 }
 
+pub struct JavaNew {
+    implementor: String,
+    full_version: String,
+    jvm_variant: String,
+    image_type: String,
+    path: String,
+}
+
+impl JavaNew {
+    pub fn new (    implementor: String,
+                   full_version: String,
+                   jvm_variant: String,
+                   image_type: String,
+                   path: String)-> JavaNew
+    {
+        return JavaNew{implementor, full_version, jvm_variant, image_type, path};
+    }
+}
+
 impl Java {
     pub fn new(
         full_version: String,

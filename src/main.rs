@@ -1,10 +1,11 @@
 use clap;
 use tokio;
-pub mod java_remote;
-pub mod java_ver;
-mod utils;
 use console::Style;
 use dotenv::dotenv;
+
+pub mod java_remote;
+pub mod java_ver;
+pub mod utils;
 
 #[tokio::main]
 async fn main() {
