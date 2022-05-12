@@ -27,7 +27,8 @@ async fn main() {
         .subcommand(
             clap::App::new("enable")
                 .about("enable one jdk version globally")
-                .args(&[clap::Arg::new("implementor").takes_value(true).short('i'), clap::Arg::new("version").takes_value(true).short('v')]),
+                .args(&[clap::Arg::new("implementor").takes_value(true).short('i'), clap::Arg::new("JDK version").takes_value(true).short('v')])
+                .override_usage("jdkman.exe -i [IMPLEMENTOR] -v [JDK_VERSION]"),
         )
         .subcommand(
             clap::App::new("disable")

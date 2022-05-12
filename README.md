@@ -16,12 +16,12 @@ jvman get remote 11 // 下载 JDK 11 的最新构建版
 
 ### 加载本地jdk环境
 
-`get local {Path}` 可以从路径中获取已安装的JDK的版本信息. 例如:
+`get local {Path}` 可以从路径中获取已安装的JDK的版本信息`注：目前能够完美支持的只有Adopt OpenJDK系列`. 例如:
 
 ```cmd
 "C:/Program Files/Eclipse Foundation/jdk-16.0.2.7-hotspot"
 
-//启用位于该位置的JDK
+//加载位于该位置的JDK
 ```
 
 ### 本地已安装的 JDK 版本的查看和使用
