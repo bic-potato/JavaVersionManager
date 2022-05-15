@@ -1,3 +1,10 @@
+/*
+ * @Author: ZuoXichen
+ * @Date: 2022-02-11 18:02:31
+ * @LastEditTime: 2022-05-12 23:43:47
+ * @LastEditors: ZuoXichen
+ * @Description: 
+ */
 use std;
 use std::path::Path;
 use std::path::PathBuf;
@@ -7,6 +14,7 @@ use indicatif::ProgressBar;
 use console::Term;
 
 pub fn extract(files: &Path, current_location: &PathBuf) {
+    println!("{}", files.to_str().unwrap());
 
     let file = std::fs::File::open(files).unwrap();
 

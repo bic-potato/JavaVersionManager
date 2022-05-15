@@ -10,7 +10,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use toml;
 use crate::utils::release_utils::ReleaseParser;
-
+use std::process::Command;
 
 #[derive(Serialize, Deserialize)]
 pub struct Java {
@@ -158,6 +158,7 @@ pub fn version_record(java_config: JavaNew) {
 }
 
 pub fn enable_version(implementor: &str, version: &str) {
+    println!("enable global");
     let store: StoreNew = read_version();
     if let Some(lists) = store.java_version {
         for element in lists {
@@ -205,3 +206,27 @@ pub fn read_local(path: &str) {
     }
 }
 
+pub fn enable_temp(implementor: &str, version: &str) {
+    let store: StoreNew = read_version();
+    if let Some(lists) = store.java_version {
+        for element in lists {
+            if version == element.full_version && implementor == element.implementor {
+                let mut path = PathBuf::new();
+                path.push(&element.path);
+                let str_path:String = path.to_str().unwrap().to_owned();
+                str_path.replace("\\", "/");
+                let result = std::process::Command::new("cmd").arg(format!("/K set path={str_path};%path%")).output();
+                match result {
+                    Ok(_) => {
+                        let green = Style::new().green();
+                        println!("{}, JDK VERSION:{}", green.apply_to("Enable SUCCESS"), version)
+                    }
+                    Err(e) => {
+                        let red = Style::new().red();
+                        println!("{}, {}", red.apply_to("Enable FAILED"), e.to_string());
+                    }
+                }
+            }
+        }
+    }
+}

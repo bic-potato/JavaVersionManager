@@ -27,8 +27,12 @@ async fn main() {
         .subcommand(
             clap::App::new("enable")
                 .about("enable one jdk version globally")
-                .args(&[clap::Arg::new("implementor").takes_value(true).short('i'), clap::Arg::new("JDK version").takes_value(true).short('v')])
-                .override_usage("jdkman.exe -i [IMPLEMENTOR] -v [JDK_VERSION]"),
+                .args(&[clap::Arg::new("implementor").takes_value(true).short('i'), 
+                clap::Arg::new("version").takes_value(true).short('v'),
+                // clap::Arg::new("global").short('g').long("global").takes_value(false).help("enable jdk globally").default_missing_value("true")
+                ])
+                
+                .override_usage("jdkman.exe enable -i [IMPLEMENTOR] -v [JDK_VERSION]"),
         )
         .subcommand(
             clap::App::new("disable")
@@ -82,6 +86,11 @@ async fn main() {
                 let implementors = String::from(implementor);
                 let imple = implementors.replace("\"", "");
                 java_ver::enable_version(&imple, version);
+                // if let Some(_) = e.value_of("global"){
+                //     java_ver::enable_version(&imple, version);
+                // } else {
+                //     java_ver::enable_temp(&imple, version);
+                // }
             }
         }
     } else if let Some(_) = matches.subcommand_matches("disable") {

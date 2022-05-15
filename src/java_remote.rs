@@ -1,3 +1,10 @@
+/*
+ * @Author: ZuoXichen
+ * @Date: 2022-01-30 11:56:36
+ * @LastEditTime: 2022-05-12 23:49:20
+ * @LastEditors: ZuoXichen
+ * @Description: 
+ */
 use crate::java_ver;
 use download_rs::async_download::Download;
 use json;
@@ -45,7 +52,7 @@ pub async fn get_remote(version: &str) {
             if !version_store.contains(&version_name, "Eclipse Adoptium") {
                 // println!("{}", file_name);
                 let download_url = format!(
-                    "https://mirrors.tuna.tsinghua.edu.cn/AdoptOpenJDK/{}/jdk/{}/windows/{}",
+                    "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{}/jdk/{}/windows/{}",
                     version, arch, file_name
                 );
 
