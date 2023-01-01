@@ -1,7 +1,7 @@
 /*
  * @Author: ZuoXichen
  * @Date: 2022-02-11 18:02:31
- * @LastEditTime: 2022-05-12 23:43:47
+ * @LastEditTime: 2023-01-01 15:10:50
  * @LastEditors: ZuoXichen
  * @Description: 
  */
@@ -11,7 +11,6 @@ use std::path::PathBuf;
 use indicatif::ProgressStyle;
 use zip;
 use indicatif::ProgressBar;
-use console::Term;
 
 pub fn extract(files: &Path, current_location: &PathBuf) {
     println!("{}", files.to_str().unwrap());
@@ -22,7 +21,7 @@ pub fn extract(files: &Path, current_location: &PathBuf) {
 
     let prograss = ProgressBar::new(archive.len().try_into().unwrap());
     prograss.set_style(ProgressStyle::default_bar()
-    .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+    .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{human_len} ({eta})").unwrap()
     .progress_chars("#>-"));
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).unwrap();

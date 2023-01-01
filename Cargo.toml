@@ -1,24 +1,28 @@
 [package]
 edition = "2021"
-name = "jvman"
+name = "jvmain"
 version = "0.2.0"
-
+[[bin]]
+name="jvmain"
+[lib]
+name="libjvs"
+crate-type=["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = {version = "3.0.10", features = ["derive"]}
-download_rs_reborned = {version = "0.2.0", features = ["sync_download"]}
+clap = {version = "4.0.32", features = ["derive"]}
+download_rs_reborned = {version = "0.2.2", features = ["async_download"]}
 http = "0.2.6"
 json = "0.12.4"
 reqwest = {version = "0.11", features = ["json"]}
 serde = {version = "1.0", features = ["derive"]}
 tokio = {version = "1", features = ["full"]}
 toml = "0.5"
-zip = "0.5.13"
+zip = "0.6.3"
 dotenv = "0.15.0"
 console = "0.15.0"
-indicatif = "0.16.2"
-winapi = {version="0.3.9", features = ["winuser"]}
+indicatif = "0.17.2"
+serde_json="1.0.91"
 # windows-sys = {version = "0.32.0", features = ["Win32_Foundation","Win32_Security", "Win32_System_Threading", "Win32_System_SystemServices"]}
 
 

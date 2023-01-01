@@ -1,16 +1,10 @@
-use std::error::Error;
-use std::fs::File;
-use crate::utils::{uac_utils, ziputil};
 use console::Style;
 use serde::Deserialize;
 use serde::Serialize;
-use std::io::Write;
-use std::{fs, path, result};
-use std::path::Path;
+use std::fs;
 use std::path::PathBuf;
 use toml;
 use crate::utils::release_utils::ReleaseParser;
-use std::process::Command;
 
 #[derive(Serialize, Deserialize)]
 pub struct Java {
@@ -30,12 +24,13 @@ pub struct JavaNew {
 }
 
 impl JavaNew {
-    pub fn new(implementor: &str,
-               full_version: &str,
-               jvm_variant: &str,
-               image_type: &str,
-               path: &str) -> JavaNew
-    {
+    pub fn new(
+        implementor: &str,
+        full_version: &str,
+        jvm_variant: &str,
+        image_type: &str,
+        path: &str
+    ) -> JavaNew {
         let implementor = implementor.to_string();
         let full_version = full_version.to_string();
         let jvm_variant = jvm_variant.to_string();
@@ -58,7 +53,7 @@ impl Java {
         full_version: String,
         jvm_variant: String,
         image_type: String,
-        path: String,
+        path: String
     ) -> Java {
         Java {
             full_version,
@@ -81,20 +76,20 @@ pub struct StoreNew {
 
 impl StoreNew {
     pub fn new() -> StoreNew {
-        let mut vec: Vec<JavaNew> = Vec::new();
+        let vec: Vec<JavaNew> = Vec::new();
         return StoreNew { java_version: Some(vec) };
     }
     pub fn add(&mut self, obj: JavaNew) {
-        let mut list = self.java_version.as_mut().unwrap();
+        let list = self.java_version.as_mut().unwrap();
         list.push(obj);
     }
     pub fn get_java_versions(&mut self) -> &mut Vec<JavaNew> {
-        let mut list = self.java_version.as_mut().unwrap();
+        let list = self.java_version.as_mut().unwrap();
         return list;
     }
 
     pub fn get_full_version_list(&mut self) -> Vec<String> {
-        let mut list = self.java_version.as_mut().unwrap();
+        let list = self.java_version.as_mut().unwrap();
         let mut version_list: Vec<String> = Vec::new();
         for element in list {
             version_list.push(element.full_version.to_string());
@@ -102,16 +97,25 @@ impl StoreNew {
         version_list
     }
 
-
     pub fn contains(&mut self, version: &str, implementor: &str) -> bool {
-        let list = self.java_version.as_ref().unwrap();
+        match self.java_version {
+            Some(_) => {
+                let list = self.java_version.as_ref().unwrap();
 
-        for element in list {
-            if element.full_version == String::from(version) && element.implementor == String::from(implementor) {
-                return true;
+                for element in list {
+                    if
+                        element.full_version == String::from(version) &&
+                        element.implementor == String::from(implementor)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            None => {
+                return false;
             }
         }
-        return false;
     }
 }
 
@@ -119,7 +123,13 @@ pub fn old_to_new(store: Store) -> StoreNew {
     let mut new = StoreNew::new();
     if let Some(list) = store.Java_Version {
         for element in list {
-            let java_new = JavaNew::new("Eclipse Adoptium", &element.full_version, &element.jvm_variant, &element.image_type, &element.path);
+            let java_new = JavaNew::new(
+                "Eclipse Adoptium",
+                &element.full_version,
+                &element.jvm_variant,
+                &element.image_type,
+                &element.path
+            );
             new.add(java_new);
         }
     } else {
@@ -128,15 +138,20 @@ pub fn old_to_new(store: Store) -> StoreNew {
     return new;
 }
 
-
 pub fn read_version() -> StoreNew {
     let mut current_location = std::env::current_exe().unwrap();
     current_location.pop();
     current_location.push("versions.toml");
-    let contents = std::fs::read_to_string(&current_location).expect("Unable to load Version Files");
-    let mut result: Store = toml::from_str(&contents).unwrap();
-    if let Some(store) = result.Java_Version {
-        let javaverisions = old_to_new( toml::from_str(&contents).unwrap());
+    let contents = std::fs
+        ::read_to_string(&current_location)
+        .expect("Unable to load Version Files");
+    if contents == "" {
+        let mut _store = StoreNew::new();
+        return _store;
+    }
+    let result: Store = toml::from_str(&contents).unwrap();
+    if let Some(_) = result.Java_Version {
+        let javaverisions = old_to_new(toml::from_str(&contents).unwrap());
         let content_string = toml::to_string(&javaverisions).unwrap();
         fs::write(&current_location, content_string).unwrap();
         return javaverisions;
@@ -145,7 +160,6 @@ pub fn read_version() -> StoreNew {
         return result;
     }
 }
-
 
 pub fn version_record(java_config: JavaNew) {
     let mut version_file = std::env::current_exe().unwrap();
@@ -157,7 +171,7 @@ pub fn version_record(java_config: JavaNew) {
     fs::write(&version_file, config.as_bytes()).expect("Err");
 }
 
-pub fn enable_version(implementor: &str, version: &str) {
+pub fn enable_jdk_global(implementor: &str, version: &str) {
     println!("enable global");
     let store: StoreNew = read_version();
     if let Some(lists) = store.java_version {
@@ -178,11 +192,11 @@ pub fn enable_version(implementor: &str, version: &str) {
                 match result {
                     Ok(_) => {
                         let green = Style::new().green();
-                        println!("{}, JDK VERSION:{}", green.apply_to("Enable SUCCESS"), version)
+                        println!("{}, JDK VERSION:{}", green.apply_to("Enable SUCCESS"), version);
                     }
                     Err(e) => {
                         let red = Style::new().red();
-                        println!("{}, {}", red.apply_to("Enable FAILED"), e.to_string());
+                        eprintln!("{}, {}", red.apply_to("Enable FAILED"), e.to_string());
                     }
                 }
             }
@@ -190,10 +204,10 @@ pub fn enable_version(implementor: &str, version: &str) {
     }
 }
 
-
-pub fn read_local(path: &str) {
+pub fn install_local_jdk(path: &str) {
     let mut record = read_version();
-    let mut release_parser = ReleaseParser::new(path);
+    let java_location_str = path.replace("\\", "/");
+    let release_parser = ReleaseParser::new(&java_location_str);
     let java = release_parser.parse();
 
     if !record.contains(&java.full_version, &java.implementor) {
@@ -202,28 +216,49 @@ pub fn read_local(path: &str) {
         println!("{}", green.apply_to("jdk install finish!"))
     } else {
         let red = Style::new().red();
-        println!("{}JDK already exist!", red.apply_to("Error"));
+        eprintln!("{} JDK already exist!", red.apply_to("Error"));
     }
 }
 
-pub fn enable_temp(implementor: &str, version: &str) {
+pub fn enable_local(implementor: &str, version: &str) {
     let store: StoreNew = read_version();
     if let Some(lists) = store.java_version {
         for element in lists {
             if version == element.full_version && implementor == element.implementor {
                 let mut path = PathBuf::new();
                 path.push(&element.path);
-                let str_path:String = path.to_str().unwrap().to_owned();
-                str_path.replace("\\", "/");
-                let result = std::process::Command::new("cmd").arg(format!("/K set path={str_path};%path%")).output();
-                match result {
-                    Ok(_) => {
-                        let green = Style::new().green();
-                        println!("{}, JDK VERSION:{}", green.apply_to("Enable SUCCESS"), version)
+
+                match std::env::var("JVS_EXEC_SHELL") {
+                    Ok(shell) => {
+                        match std::env::var("JVS_POSTSCRIPT") {
+                            Ok(postscript_path) => {
+                                if shell == "pwsh" {
+                                    let str_java_path: String = path.to_str().unwrap().to_owned().replace("\\", "/");
+                                    let path_string =
+                                        format!("$env:PATH=\"{}/bin/;\"+$env:Path", str_java_path);
+                                    fs::write(&postscript_path, path_string.as_bytes()).unwrap();
+                                } else if shell == "CMD" {
+                                    let str_java_path: String = path.to_str().unwrap().to_owned().replace("/", "\\");
+                                    let path_string =
+                                    format!("SET PATH={}\\bin;%PATH%", str_java_path);
+                                    fs::write(&postscript_path, path_string.as_bytes()).unwrap();
+                                }
+                            }
+                            Err(_) => {
+                                let red = Style::new().red();
+                                eprintln!(
+                                    "{}, JVS_POSTSCRIPT environment variable not set.",
+                                    red.apply_to("Enable FAILED")
+                                );
+                            }
+                        }
                     }
-                    Err(e) => {
+                    Err(_) => {
                         let red = Style::new().red();
-                        println!("{}, {}", red.apply_to("Enable FAILED"), e.to_string());
+                        eprintln!(
+                            "{}, You need execute jvs from shell",
+                            red.apply_to("Enable FAILED")
+                        );
                     }
                 }
             }

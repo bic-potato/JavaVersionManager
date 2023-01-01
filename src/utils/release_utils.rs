@@ -1,8 +1,14 @@
+/*
+ * @Author: ZuoXichen
+ * @Date: 2022-10-26 19:41:43
+ * @LastEditTime: 2023-01-01 15:08:39
+ * @LastEditors: ZuoXichen
+ * @Description: 
+ */
 use std::collections::HashMap;
-use std::fs;
 use std::fs::File;
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path:: PathBuf;
 use console::Style;
 use crate::java_ver::JavaNew;
 
@@ -32,7 +38,7 @@ impl ReleaseParser {
             println!("{:?}", vec);
             if vec.len() > 1 {
                 let a = vec[0];
-                let mut b = vec[1];
+                let b = vec[1];
                 let b1 = b.replace("\"", "");
                 let mut b2 = String::from("");
                 if b1.contains("\r") {
